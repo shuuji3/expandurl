@@ -3,7 +3,8 @@ ExpandURL
 
 This is the source code for the [ExpandURL](http://expandurl.appspot.com) Google App Engine site. Due to it outgrowing the GAE free plan I'm open-sourcing it so whoever needs it can run their own instance.
 
-License:
+License
+=======
 
             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE 
                         Version 2, December 2004 

@@ -1,0 +1,20 @@
+application: expandurl-hrd
+version: 4-0
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /stuff
+  static_dir: stuff
+
+- url: /expand
+  script: main.application
+
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /
+  static_files: main.html
+  upload: main\.html

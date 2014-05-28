@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>ExpandURL - Expand shortened URL's!</title>
+		
+		<meta http-equiv="content-Type" content="text/html; charset=utf-8">
+		<meta name="description" content="ExpandURL expands your short urls - fast and simple. Supports all major short url services.">
+		<meta name="robots" content="index, follow">
+		<meta name="googlebot" content="all, index, follow">
+		<meta name="rating" content="general">
+		<meta name="pagerank™" content="10">
+		<meta name="alexa" content="100">
+		<meta name="serps" content="1, 2, 3, 10, 11, 12, 13, ATF">
+		<meta name="seoconsultantsdirectory" content="5">
+		
+		<link rel="stylesheet" type="text/css" href="stuff/main.css">
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+		<script type="text/javascript" src="http://cdn.jquerytools.org/1.2.5/tiny/jquery.tools.min.js"></script>
+		<script type="text/javascript" src="stuff/main.js"></script>
+		<script type="text/javascript">var _gaq=_gaq||[];_gaq.push(["_setAccount","UA-24310747-1"]);_gaq.push(["_trackPageview"]);(function(){var ga=document.createElement("script");ga.type="text/javascript";ga.async=true;ga.src=("https:"==document.location.protocol?"https://ssl":"http://www")+".google-analytics.com/ga.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(ga,s)})();</script>
+		<script type="text/javascript" src="https://apis.google.com/js/plusone.js">{lang: 'en-GB'}</script>
+	</head>
+	<body>
+		<h1>ExpandURL</h1>
+		<h2>Please enable javascript.</h2>
+		<ul class="tabs">
+			<li><a id="tab1" href="#main">ExpandURL</a></li>
+			<li><a id="tab2" href="#about">About</a></li>
+			<li><a id="tab3" href="#api">API</a></li>
+		</ul>
+		
+		<div class="panes">
+			<div id="main" class="pane">
+				<input type="text" value="goo.gl/u6U1n0">
+				<input type="button" value="Expand!">
+				<hr>
+				<img id="loading" src="stuff/loading.gif" alt="Loading...">
+				<h2 id="initialtext">To start, enter a short url and hit Expand!</h2>
+				<div id="result">
+					<h3 id="start_url"><a></a></h3>
+					<div>redirects to</div>
+					<h2 id="end_url"><a></a></h2>
+				</div>
+				<h2 id="error"></h2>
+				<div id="redirects">
+					<h3></h3>
+					<ol start="0"></ol>
+				</div>
+			</div>
+			<div class="pane">
+				<img id="gae" src="http://code.google.com/appengine/images/appengine-silver-120x30.gif" alt="Powered by Google App Engine">
+				<p class="first">ExpandURL is aimed at being a simple, fast and flawless URL expander. For example, it supports those fancy <a href="http://tinyarro.ws">tinyarrows</a> URLs. In fact, it should support all short urls using the location header to redirect.</p>
+
+				<p>Please note: ExpandURL is hosted on a free Google App Engine plan. I do not have the ability to pay for it and keep it from going over capacity. If you are interested in hosting your own instance, the source code is available on <a href="https://github.com/haavardp/expandurl">GitHub</a>.</p>
+			</div>
+			<div id="api" class="pane">
+				<p class="first">ExpandURL provides a simple but useful API for expanding URL's.</p>
+				<h3>Request</h3>
+					<p>Requests are sent to the API endpoint with the arguments using either POST or GET.</p>
+					<h4>API endpoint:</h4>
+						<pre>http://expandurl.appspot.com/expand</pre>
+					<h4>POST/GET arguments:</h4>
+						<ul>
+							<li><strong>url</strong> (required) -- the shortened url to expand. Should be url-encoded (see examples below)</li>
+						</ul>
+				<hr>
+				<h3>Response</h3>
+					<p>Responses are JSON objects with the following items:</p>
+					<ul>
+						<li><strong>status</strong> -- either "OK", "InvalidURL", "InternalError" or "TooManyRedirects" (we will only follow 10 redirects, to prevent loops etc.)</li>
+						<li><strong>start_url</strong> -- the initial url. Note: this does not neccesarily equal the input url</li>
+						<li><strong>end_url</strong> -- the url at the end of the redirect(s)</li>
+						<li><strong>redirects</strong> -- the amount of redirects followed</li>
+						<li><strong>urls</strong> -- an array containing all the urls redirected to, in order, starting with the input url</li>
+					</ul>
+					<p><strong>Note:</strong> even if an error occurs, all of these are present, even if start_url equals end_url, redirects is 0 and urls contain only the input url.</p>
+					<p><strong>Another note:</strong> "InvalidURL" may simply denote that the url redirected to doesn't work, because of an old shortened url etc.</p>
+				<hr>
+				<h3>Examples</h3>
+					<div class="example">
+						<div><strong>Input URL: </strong><pre>http://bit.ly/jcelX0</pre></div>
+						<div><strong>Request: </strong><pre>http://expandurl.appspot.com/expand?url=http%3A%2F%2Fbit.ly%2FjcelX0</pre></div>
+						<div><strong>Response: </strong><pre>{
+"status": "OK",
+"end_url": "http://expandurl.appspot.com",
+"redirects": 1,
+"urls": [
+	"http://goo.gl/u6U1n0",
+	"http://expandurl.appspot.com"
+],
+"start_url": "http://bit.ly/jcelX0"
+}</pre></div>
+				</div>
+					<div class="example">
+						<div><strong>Input URL: </strong><pre>this is not a valid url</pre></div>
+						<div><strong>Request: </strong><pre>http://expandurl.appspot.com/expand?url=this%20is%20not%20a%20valid%20url</pre></div>
+						<div><strong>Response: </strong><pre>{
+"status": "InvalidURL",
+"end_url": "http://this is not a valid url",
+"redirects": 0,
+"urls": [
+	"http://this is not a valid url"
+],
+"start_url": "http://this is not a valid url"
+}</pre></div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

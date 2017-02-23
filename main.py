@@ -83,6 +83,7 @@ def expander(self):
 
     # output in json
     self.response.out.write(json.dumps(data))
+    self.response.headers['cache-control'] = 'public, max-age=3600'
 
 
 class Expander(webapp2.RequestHandler):

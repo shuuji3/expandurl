@@ -1,11 +1,11 @@
 import webapp2
 
-import encodings.idna;
+import encodings.idna
 import urlparse
 import re
 import json
 
-import google.appengine.api.urlfetch;
+import google.appengine.api.urlfetch
 
 
 max_redirects = 10
@@ -20,7 +20,7 @@ def expander(self):
     url = self.request.get("url")
 
     # url has no scheme, default to http
-    url = url if url_regex.match(url) != None else "http://" + url
+    url = url if url_regex.match(url) is not None else "http://" + url
 
     # fix IDNA urls
     error = False
@@ -28,7 +28,8 @@ def expander(self):
         # parse url into it's components
         parsed = list(urlparse.urlparse(url))
         # loop each label in the domain and convert them to ascii
-        parsed[1] = ".".join([encodings.idna.ToASCII(domain) for domain in parsed[1].split(".")])
+        parsed[1] = ".".join([encodings.idna.ToASCII(domain)
+                              for domain in parsed[1].split(".")])
         url = urlparse.urlunparse(parsed)
     except Exception as e:
         data["status"] = "InternalError"
@@ -40,7 +41,8 @@ def expander(self):
     data["end_url"] = url
 
     if not error:
-        # if the input URL still doesn't start with http:// or https://, discard it
+        # if the input URL still doesn't start with http:// or https://,
+        # discard it
         if not url.startswith("http://") and not url.startswith("https://"):
             data["status"] = "InvalidURL"
         else:
@@ -49,8 +51,11 @@ def expander(self):
             while (requests < max_redirects):
                 requests += 1
                 try:
-                    # fetch the url _without_ following redirects, we handle them manually
-                    response = google.appengine.api.urlfetch.fetch(url, follow_redirects=False, allow_truncated=True, method="HEAD")
+                    # fetch the url _without_ following redirects,
+                    # we handle them manually
+                    response = google.appengine.api.urlfetch.fetch(
+                        url, follow_redirects=False, allow_truncated=True,
+                        method="HEAD")
                 except:
                     data["status"] = "InvalidURL"
                     break
@@ -84,6 +89,7 @@ class Expander(webapp2.RequestHandler):
     # direct both POST and GET to the expander method
     def post(self):
         expander(self)
+
     def get(self):
         expander(self)
 

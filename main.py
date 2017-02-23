@@ -5,7 +5,7 @@ import urlparse
 import re
 import json
 
-import google.appengine.api.urlfetch
+from google.appengine.api import urlfetch
 
 
 max_redirects = 10
@@ -53,7 +53,7 @@ def expander(self):
                 try:
                     # fetch the url _without_ following redirects,
                     # we handle them manually
-                    response = google.appengine.api.urlfetch.fetch(
+                    response = urlfetch.fetch(
                         url, follow_redirects=False, allow_truncated=True,
                         method="HEAD")
                 except:

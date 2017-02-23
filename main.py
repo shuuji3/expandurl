@@ -6,6 +6,7 @@ import re
 import json
 
 from google.appengine.api import urlfetch
+from google.appengine.api import memcache
 
 
 max_redirects = 10
@@ -35,51 +36,58 @@ def expander(self):
         data["status"] = "InternalError"
         error = True
 
-    # put together the basic data
-    data["urls"] = [url]
-    data["start_url"] = url
-    data["end_url"] = url
+    # check if memcache data exists
+    cache_data = memcache.get(url)
+    if cache_data is not None:
+        data = cache_data
+    else:
+        # put together the basic data
+        data["urls"] = [url]
+        data["start_url"] = url
+        data["end_url"] = url
 
-    if not error:
-        # if the input URL still doesn't start with http:// or https://,
-        # discard it
-        if not url.startswith("http://") and not url.startswith("https://"):
-            data["status"] = "InvalidURL"
-        else:
-            requests = 0
-            # follow redirects, max x times
-            while (requests < max_redirects):
-                requests += 1
-                try:
-                    # fetch the url _without_ following redirects,
-                    # we handle them manually
-                    response = urlfetch.fetch(
-                        url, follow_redirects=False, allow_truncated=True,
-                        method="HEAD")
-                except:
-                    data["status"] = "InvalidURL"
-                    break
+        if not error:
+            # if the input URL still doesn't start with http:// or https://,
+            # discard it
+            if not url.startswith("http://") and not url.startswith("https://"):
+                data["status"] = "InvalidURL"
+            else:
+                requests = 0
+                # follow redirects, max x times
+                while (requests < max_redirects):
+                    requests += 1
+                    try:
+                        # fetch the url _without_ following redirects,
+                        # we handle them manually
+                        response = urlfetch.fetch(
+                            url, follow_redirects=False, allow_truncated=True,
+                            method="HEAD")
+                    except:
+                        data["status"] = "InvalidURL"
+                        break
 
-                if response.status_code in (300, 301, 302, 303, 307):
-                    if "location" in response.headers:
-                        url = response.headers["location"]
-                    elif "Location" in response.headers:
-                        url = response.headers["Location"]
+                    if response.status_code in (300, 301, 302, 303, 307):
+                        if "location" in response.headers:
+                            url = response.headers["location"]
+                        elif "Location" in response.headers:
+                            url = response.headers["Location"]
+                        else:
+                            data["status"] = "OK"
+                            break
                     else:
+                        # no more redirects; we're done
                         data["status"] = "OK"
                         break
+
+                    # add the current url to the urls array in the output
+                    data["urls"].append(url)
                 else:
-                    # no more redirects; we're done
-                    data["status"] = "OK"
-                    break
+                    data["status"] = "TooManyRedirects"
 
-                # add the current url to the urls array in the output
-                data["urls"].append(url)
-            else:
-                data["status"] = "TooManyRedirects"
+        data["redirects"] = len(data["urls"]) - 1
+        data["end_url"] = url
 
-    data["redirects"] = len(data["urls"]) - 1
-    data["end_url"] = url
+        memcache.set(data['start_url'], json.dumps(data), time=3600)
 
     # output in json
     self.response.out.write(json.dumps(data))
